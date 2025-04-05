@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voicetta - Test Booking Flow</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .test-container {
+            max-width: 900px;
+            margin: 50px auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header img {
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+        }
+        .test-results {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success-icon {
+            font-size: 60px;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+        .error-icon {
+            font-size: 60px;
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="header">
+            <img src="https://placeholder.com/wp-content/uploads/2018/10/placeholder.com-logo1.png" alt="Voicetta Logo">
+            <h1>End-to-End Booking Flow Test</h1>
+            <p class="text-muted">Test the integration between MiniCal PMS and YieldPlanet Channel Manager</p>
+        </div>
+
+        <div class="test-section">
+            <h3>Test Configuration</h3>
+            <p>This test will validate the following integration points:</p>
+            <ul>
+                <li>Inventory synchronization from MiniCal to YieldPlanet</li>
+                <li>Rate synchronization from MiniCal to YieldPlanet</li>
+                <li>Reservation creation from YieldPlanet to MiniCal</li>
+                <li>Database storage of synchronized data</li>
+            </ul>
+
+            <div class="alert alert-info">
+                <strong>Note:</strong> This test will create actual test data in both systems. It should only be run in a test environment.
+            </div>
+
+            <div class="mb-3">
+                <label for="propertySelect" class="form-label">Select Property for Testing</label>
+                <select class="form-select" id="propertySelect">
+                    <option selected disabled>Choose a property...</option>
+                    <!-- Properties will be loaded dynamically -->
+                </select>
+            </div>
+
+            <button id="startTestButton" class="btn btn-primary" onclick="startTest()">Start Test</button>
+        </div>
+
+        <div id="testProgress" class="test-section" style="display: none;">
+            <h3>Test Progress</h3>
+            <div class="d-flex align-items-center mb-3">
+                <div class="spinner-border text-primary me-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <div>
+                    <h5 id="currentTestStep">Initializing test...</h5>
+                    <p id="currentTestDetail" class="text-muted">Please wait while the test is running.</p>
+                </div>
+            </div>
+            <div class="progress mb-3">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div id="testResults" class="test-section" style="display: none;">
+            <h3>Test Results</h3>
+            <div id="resultSummary" class="text-center mb-4">
+                <!-- Will be populated with success/error icon and message -->
+            </div>
+            <div class="test-results" id="resultDetails">
+                <!-- Will be populated with test results -->
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between mt-4">
+            <a href="/setup" class="btn btn-outline-secondary">Back to Setup Wizard</a>
+            <a href="/dashboard" class="btn btn-outline-primary">Go to Dashboard</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Load properties when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProperties();
+        });
+
+        function loadProperties() {
+            // Simulate API call to get properties
+            fetch('/api/properties')
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById('propertySelect');
+                    
+                    // Clear existing options
+                    while (select.options.length > 1) {
+                        select.remove(1);
+                    }
+                    
+                    // Add properties to select
+                    data.forEach(property => {
+                        const option = document.createElement('option');
+                        option.value = property.id;
+                        option.textContent = property.name;
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading properties:', error);
+                    alert('Failed to load properties. Please try again.');
+                });
+        }
+
+        function startTest() {
+            const propertySelect = document.getElementById('propertySelect');
+            const propertyId = propertySelect.value;
+            
+            if (!propertyId || propertyId === 'Choose a property...') {
+                alert('Please select a property for testing.');
+                return;
+            }
+            
+            // Show progress section
+            document.getElementById('testProgress').style.display = 'block';
+            document.getElementById('startTestButton').disabled = true;
+            
+            // Update progress bar
+            let progress = 0;
+            const progressBar = document.querySelector('.progress-bar');
+            const currentTestStep = document.getElementById('currentTestStep');
+            const currentTestDetail = document.getElementById('currentTestDetail');
+            
+            const progressInterval = setInterval(() => {
+                progress += 5;
+                progressBar.style.width = `${progress}%`;
+                
+                if (progress === 20) {
+                    currentTestStep.textContent = 'Testing inventory synchronization...';
+                    currentTestDetail.textContent = 'Synchronizing room availability from MiniCal to YieldPlanet';
+                } else if (progress === 40) {
+                    currentTestStep.textContent = 'Testing rate synchronization...';
+                    currentTestDetail.textContent = 'Synchronizing room rates from MiniCal to YieldPlanet';
+                } else if (progress === 60) {
+                    currentTestStep.textContent = 'Testing reservation creation...';
+                    currentTestDetail.textContent = 'Creating a test reservation from YieldPlanet to MiniCal';
+                } else if (progress === 80) {
+                    currentTestStep.textContent = 'Verifying database storage...';
+                    currentTestDetail.textContent = 'Checking that all data was properly stored in the database';
+                } else if (progress >= 100) {
+                    clearInterval(progressInterval);
+                }
+            }, 500);
+            
+            // Call the test API
+            fetch('/api/test/booking-flow', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ propertyId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Clear the progress interval
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                
+                // Show test results
+                document.getElementById('testResults').style.display = 'block';
+                
+                if (data.status === 'success') {
+                    document.getElementById('resultSummary').innerHTML = `
+                        <div class="success-icon">✓</div>
+                        <h4>Test Completed Successfully</h4>
+                        <p>All integration points are working correctly.</p>
+                    `;
+                } else {
+                    document.getElementById('resultSummary').innerHTML = `
+                        <div class="error-icon">✗</div>
+                        <h4>Test Failed</h4>
+                        <p>${data.message}</p>
+                    `;
+                }
+                
+                // Show detailed results
+                document.getElementById('resultDetails').textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                // Clear the progress interval
+                clearInterval(progressInterval);
+                
+                // Show error
+                document.getElementById('testResults').style.display = 'block';
+                document.getElementById('resultSummary').innerHTML = `
+                    <div class="error-icon">✗</div>
+                    <h4>Test Failed</h4>
+                    <p>An error occurred while running the test.</p>
+                `;
+                document.getElementById('resultDetails').textContent = error.toString();
+            })
+            .finally(() => {
+                // Update progress display
+                currentTestStep.textContent = 'Test completed';
+                currentTestDetail.textContent = 'See results below';
+                document.getElementById('startTestButton').disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voicetta - MiniCal Setup Wizard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .wizard-container {
+            max-width: 900px;
+            margin: 50px auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        .wizard-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .wizard-header img {
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e9ecef;
+            z-index: 1;
+        }
+        .step {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            position: relative;
+            z-index: 2;
+        }
+        .step.active {
+            background: #007bff;
+            border-color: #007bff;
+            color: white;
+        }
+        .step.completed {
+            background: #28a745;
+            border-color: #28a745;
+            color: white;
+        }
+        .step-content {
+            display: none;
+        }
+        .step-content.active {
+            display: block;
+        }
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        .mapping-container {
+            margin-bottom: 20px;
+        }
+        .mapping-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+        }
+        .success-icon {
+            font-size: 60px;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="wizard-container">
+        <div class="wizard-header">
+            <img src="https://placeholder.com/wp-content/uploads/2018/10/placeholder.com-logo1.png" alt="Voicetta Logo">
+            <h1>MiniCal to YieldPlanet Setup Wizard</h1>
+            <p class="text-muted">Connect your MiniCal PMS to YieldPlanet Channel Manager in just a few steps</p>
+        </div>
+
+        <div class="step-indicator">
+            <div class="step active" id="step-indicator-1">1</div>
+            <div class="step" id="step-indicator-2">2</div>
+            <div class="step" id="step-indicator-3">3</div>
+            <div class="step" id="step-indicator-4">4</div>
+            <div class="step" id="step-indicator-5">5</div>
+        </div>
+
+        <!-- Step 1: Welcome -->
+        <div class="step-content active" id="step-1">
+            <h3>Welcome to the MiniCal Integration Wizard</h3>
+            <p>This wizard will guide you through connecting your MiniCal Property Management System with YieldPlanet Channel Manager, giving you access to over 500 booking channels.</p>
+            
+            <div class="alert alert-info">
+                <h5>Before you begin, please make sure you have:</h5>
+                <ul>
+                    <li>Your MiniCal property set up and configured</li>
+                    <li>Your YieldPlanet account credentials</li>
+                    <li>Administrator access to both systems</li>
+                </ul>
+            </div>
+
+            <p>The setup process consists of the following steps:</p>
+            <ol>
+                <li>Select your MiniCal property</li>
+                <li>Connect to YieldPlanet</li>
+                <li>Map room types between systems</li>
+                <li>Map rate plans between systems</li>
+                <li>Perform initial synchronization</li>
+            </ol>
+
+            <div class="navigation-buttons">
+                <button class="btn btn-secondary" disabled>Back</button>
+                <button class="btn btn-primary" onclick="nextStep()">Get Started</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Select Property -->
+        <div class="step-content" id="step-2">
+            <h3>Select Your MiniCal Property</h3>
+            <p>Please select the MiniCal property you want to connect to YieldPlanet:</p>
+            
+            <div class="mb-3">
+                <label for="propertySelect" class="form-label">Select Property</label>
+                <select class="form-select" id="propertySelect">
+                    <option selected disabled>Choose a property...</option>
+                    <!-- Properties will be loaded dynamically -->
+                </select>
+            </div>
+
+            <div id="propertyDetails" class="card mt-4" style="display: none;">
+                <div class="card-body">
+                    <h5 class="card-title" id="propertyName"></h5>
+                    <p class="card-text" id="propertyAddress"></p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Room Types:</strong> <span id="roomTypeCount"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Rate Plans:</strong> <span id="ratePlanCount"></span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="navigation-buttons">
+                <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+                <button class="btn btn-primary" onclick="nextStep()">Continue</button>
+            </div>
+        </div>
+
+        <!-- Step 3: YieldPlanet Credentials -->
+        <div class="step-content" id="step-3">
+            <h3>Connect to YieldPlanet</h3>
+            <p>Enter your YieldPlanet credentials to establish the connection:</p>
+            
+            <div class="mb-3">
+                <label for="yieldPlanetUsername" class="form-label">YieldPlanet Username</label>
+                <input type="email" class="form-control" id="yieldPlanetUsername" placeholder="your-email@example.com">
+            </div>
+            
+            <div class="mb-3">
+                <label for="yieldPlanetApiKey" class="form-label">YieldPlanet API Key</label>
+                <input type="password" class="form-control" id="yieldPlanetApiKey" placeholder="Your API key">
+                <div class="form-text">You can find your API key in your YieldPlanet account settings.</div>
+            </div>
+
+            <div class="alert alert-warning">
+                <strong>Important:</strong> Your credentials are securely stored and only used to communicate with YieldPlanet.
+            </div>
+
+            <div id="connectionStatus"></div>
+
+            <div class="navigation-buttons">
+                <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+                <button class="btn btn-primary" onclick="testConnection()">Test Connection</button>
+                <button class="btn btn-success" id="continueAfterTest" style="display: none;" onclick="nextStep()">Continue</button>
+            </div>
+        </div>
+
+        <!-- Step 4: Map Room Types -->
+        <div class="step-content" id="step-4">
+            <h3>Map Room Types</h3>
+            <p>Match your MiniCal room types with YieldPlanet room types:</p>
+            
+            <div class="alert alert-info">
+                <strong>Tip:</strong> For the best results, match room types with similar capacity and features.
+            </div>
+
+            <div id="roomTypeMappings" class="mapping-container">
+                <!-- Room type mappings will be loaded dynamically -->
+                <div class="mapping-item">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <h5>MiniCal: Standard Double Room</h5>
+                            <p>Max Occupancy: 2 adults</p>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <i class="bi bi-arrow-right"></i>
+                        </div>
+                        <div class="col-md-5">
+                            <select class="form-select">
+                                <option selected disabled>Select YieldPlanet Room Type</option>
+                                <option>Double Room</option>
+                                <option>Twin Room</option>
+                                <option>Standard Room</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="navigation-buttons">
+                <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+                <button class="btn btn-primary" onclick="saveRoomMappings()">Save & Continue</button>
+            </div>
+        </div>
+
+        <!-- Step 5: Map Rate Plans -->
+        <div class="step-content" id="step-5">
+            <h3>Map Rate Plans</h3>
+            <p>Match your MiniCal rate plans with YieldPlanet rate plans:</p>
+            
+            <div class="alert alert-info">
+                <strong>Tip:</strong> Match rate plans with similar cancellation policies and inclusions.
+            </div>
+
+            <div id="ratePlanMappings" class="mapping-container">
+                <!-- Rate plan mappings will be loaded dynamically -->
+                <div class="mapping-item">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <h5>MiniCal: Standard Rate</h5>
+                            <p>Flexible cancellation</p>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <i class="bi bi-arrow-right"></i>
+                        </div>
+                        <div class="col-md-5">
+                            <select class="form-select">
+                                <option selected disabled>Select YieldPlanet Rate Plan</option>
+                                <option>Standard Rate</option>
+                                <option>Flexible Rate</option>
+                                <option>Best Available Rate</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="navigation-buttons">
+                <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+                <button class="btn btn-primary" onclick="saveRatePlanMappings()">Save & Continue</button>
+            </div>
+        </div>
+
+        <!-- Step 6: Initial Synchronization -->
+        <div class="step-content" id="step-6">
+            <h3>Initial Synchronization</h3>
+            <p>Let's synchronize your inventory and rates from MiniCal to YieldPlanet:</p>
+            
+            <div class="mb-3">
+                <label for="syncStartDate" class="form-label">Synchronization Start Date</label>
+                <input type="date" class="form-control" id="syncStartDate">
+            </div>
+            
+            <div class="mb-3">
+                <label for="syncEndDate" class="form-label">Synchronization End Date</label>
+                <input type="date" class="form-control" id="syncEndDate">
+                <div class="form-text">We recommend synchronizing at least 365 days into the future.</div>
+            </div>
+
+            <div class="alert alert-warning">
+                <strong>Important:</strong> This process may take a few minutes. Please do not close this window.
+            </div>
+
+            <div id="syncProgress" style="display: none;">
+                <div class="progress mb-3">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                </div>
+                <p id="syncStatus">Preparing synchronization...</p>
+            </div>
+
+            <div class="navigation-buttons">
+                <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+                <button class="btn btn-primary" id="startSyncButton" onclick="startSync()">Start Synchronization</button>
+                <button class="btn btn-success" id="finishButton" style="display: none;" onclick="finishSetup()">Finish Setup</button>
+            </div>
+        </div>
+
+        <!-- Step 7: Completion -->
+        <div class="step-content" id="step-7">
+            <div class="text-center">
+                <div class="success-icon">✓</div>
+                <h3>Setup Complete!</h3>
+                <p>Your MiniCal property is now connected to YieldPlanet Channel Manager.</p>
+                
+                <div class="alert alert-success">
+                    <p><strong>What happens next?</strong></p>
+                    <ul class="text-start">
+                        <li>Your inventory and rates are now being distributed to 500+ booking channels</li>
+                        <li>Bookings from these channels will automatically appear in your MiniCal PMS</li>
+                        <li>Inventory updates in MiniCal will be synchronized to YieldPlanet</li>
+                    </ul>
+                </div>
+
+                <div class="mt-4">
+                    <a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>
+                    <a href="/documentation" class="btn btn-outline-secondary ms-2">View Documentation</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentStep = 1;
+        const totalSteps = 7;
+        let selectedPropertyId = null;
+        let connectionTested = false;
+
+        // Initialize date inputs with default values
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const startDate = today.toISOString().split('T')[0];
+            
+            const endDate = new Date();
+            endDate.setFullYear(today.getFullYear() + 1);
+            
+            document.getElementById('syncStartDate').value = startDate;
+            document.getElementById('syncEndDate').value = endDate.toISOString().split('T')[0];
+            
+            // Load properties
+            loadProperties();
+        });
+
+        function showStep(step) {
+            // Hide all steps
+            document.querySelectorAll('.step-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Show current step
+            document.getElementById(`step-${step}`).classList.add('active');
+            
+            // Update step indicators
+            document.querySelectorAll('.step').forEach((el, index) => {
+                const stepNum = index + 1;
+                el.classList.remove('active', 'completed');
+                
+                if (stepNum === step) {
+                    el.classList.add('active');
+                } else if (stepNum < step) {
+                    el.classList.add('completed');
+                }
+            });
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                showStep(currentStep);
+      
+(Content truncated due to size limit. Use line ranges to read in chunks)

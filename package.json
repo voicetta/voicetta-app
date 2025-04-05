@@ -1,0 +1,58 @@
+{
+  "name": "voicetta-app",
+  "version": "1.0.0",
+  "description": "Middleware application connecting MiniCal PMS with YieldPlanet Channel Manager",
+  "main": "dist/server.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "start": "node dist/server.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "build": "tsc",
+    "lint": "eslint . --ext .ts",
+    "test": "jest",
+    "typeorm": "typeorm-ts-node-commonjs",
+    "migration:create": "typeorm migration:create",
+    "migration:generate": "npm run typeorm -- migration:generate -d src/config/database.ts",
+    "migration:run": "npm run typeorm -- migration:run -d src/config/database.ts",
+    "migration:revert": "npm run typeorm -- migration:revert -d src/config/database.ts"
+  },
+  "keywords": [
+    "minical",
+    "yieldplanet",
+    "hotel",
+    "pms",
+    "channel-manager",
+    "middleware"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/bcrypt": "^5.0.0",
+    "@types/cors": "^2.8.13",
+    "@types/express": "^4.17.17",
+    "@types/jsonwebtoken": "^9.0.2",
+    "@types/node": "^20.4.5",
+    "@types/pg": "^8.10.2",
+    "axios": "^1.4.0",
+    "bcrypt": "^5.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.1",
+    "pg": "^8.11.1",
+    "reflect-metadata": "^0.1.13",
+    "ts-node": "^10.9.1",
+    "typeorm": "^0.3.17",
+    "typescript": "^5.1.6"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.3",
+    "jest": "^29.6.2",
+    "nodemon": "^3.0.1",
+    "ts-jest": "^29.1.1",
+    "ts-node-dev": "^2.0.0"
+  }
+}
