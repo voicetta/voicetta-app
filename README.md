@@ -539,7 +539,7 @@ A: The integration is specifically designed for YieldPlanet, but the architectur
 For support, please contact:
 
 - Email: hi@voicetta.com
-- Phone: +1-123-456-7890
+- Phone: +1 650 629 7111
 
 ### Reporting Issues
 
