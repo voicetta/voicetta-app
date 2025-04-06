@@ -1,3 +1,45 @@
+# TODO
+
+zrobiony upgrade: Architecture Upgrade Summary
+I've implemented the following changes to enable a bidirectional flow where bookings created by your AI agent in MiniCal can be pushed to YieldPlanet:
+Added a new method in MiniCalConnector:
+pushBookingToYieldPlanet(): Takes a MiniCal booking and pushes it to YieldPlanet
+Extended MiniCalMapper:
+Added mapBookingToYieldPlanetReservation(): Converts MiniCal booking format to YieldPlanet format
+Added AI Agent Booking Flow:
+New API endpoint at /api/reservations/ai-agent to receive bookings from the AI agent
+New controller method createAIAgentReservation() that handles the process
+Extended the Reservation model with a source field to track different booking sources
+Created a Demo Interface:
+Simple HTML/JS interface at /ai-agent to simulate the AI agent creating bookings
+Form to test the bidirectional integration between MiniCal and YieldPlanet
+System Flow
+The updated system now supports the following flow:
+AI Agent Booking Flow:
+AI agent (retail or VAPI) creates a booking via the new endpoint
+System logs the booking in the database
+System creates the booking in MiniCal (or assumes it's already created)
+System maps and pushes the booking to YieldPlanet
+YieldPlanet distributes the booking to connected channels
+Existing Channel Booking Flow (remains unchanged):
+Booking is created in a channel connected to YieldPlanet
+YieldPlanet sends booking to Voicetta middleware
+Middleware transforms the booking and creates it in MiniCal
+Testing and Future Work
+To fully integrate this solution:
+Test the integration using the AI agent interface at /ai-agent
+Build API integrations for your existing AI agents (retail/VAPI) to use the new endpoint
+Implement monitoring to ensure bookings are successfully synchronized
+Add error handling and retries for failed synchronizations
+Conclusion
+This upgrade ensures that regardless of whether bookings come from your AI agents or from external channels via YieldPlanet, they will be properly synchronized between both systems. The architecture is designed to be flexible and expandable as you add more AI agent capabilities or integrate with additional systems.
+To deploy these changes, you'll need to:
+Update the database schema to include the new source field in the Reservation model
+Deploy the updated code with the new endpoints and interface
+Configure your AI agents to use the new API endpoint for bookings
+
+
+
 # Voicetta MiniCal-YieldPlanet Integration Deployment Guide
 
 ## Overview
