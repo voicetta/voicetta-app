@@ -47,6 +47,9 @@ export class Reservation {
   @Column({ nullable: true })
   yieldPlanetReservationId?: string;
 
+  @Column({ nullable: true, default: 'web' })
+  source: string;
+
   @CreateDateColumn()
   createdAt!: Date;
 

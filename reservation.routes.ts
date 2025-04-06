@@ -13,6 +13,9 @@ router.get('/:id', reservationController.getReservationById);
 // POST /api/reservations - Create new reservation
 router.post('/', reservationController.createReservation);
 
+// POST /api/reservations/ai-agent - Create reservation from AI agent and push to YieldPlanet
+router.post('/ai-agent', reservationController.createAIAgentReservation);
+
 // PUT /api/reservations/:id - Update reservation
 router.put('/:id', reservationController.updateReservation);
 

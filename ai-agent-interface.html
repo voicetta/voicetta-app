@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voicetta AI Agent Booking Interface</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background-color: #f5f7fa;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .booking-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        button {
+            padding: 12px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .full-width {
+            grid-column: 1 / 3;
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            display: none;
+        }
+        
+        .result.success {
+            border-color: #2ecc71;
+            background-color: #eafaf1;
+        }
+        
+        .result.error {
+            border-color: #e74c3c;
+            background-color: #fdedeb;
+        }
+        
+        pre {
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Voicetta AI Agent Demo</div>
+        </div>
+        
+        <h1>Create Booking via AI Agent</h1>
+        <p>This interface simulates the AI agent's booking process, creating a booking in MiniCal and pushing it to YieldPlanet.</p>
+        
+        <div class="booking-form">
+            <div class="form-group">
+                <label for="propertyId">Property ID</label>
+                <input type="text" id="propertyId" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="roomTypeId">Room Type ID</label>
+                <input type="text" id="roomTypeId" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="guestName">Guest Name</label>
+                <input type="text" id="guestName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="guestEmail">Guest Email</label>
+                <input type="email" id="guestEmail" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="guestPhone">Guest Phone</label>
+                <input type="tel" id="guestPhone">
+            </div>
+            
+            <div class="form-group">
+                <label for="ratePlanId">Rate Plan ID (Optional)</label>
+                <input type="text" id="ratePlanId">
+            </div>
+            
+            <div class="form-group">
+                <label for="checkInDate">Check-in Date</label>
+                <input type="date" id="checkInDate" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="checkOutDate">Check-out Date</label>
+                <input type="date" id="checkOutDate" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="adults">Adults</label>
+                <input type="number" id="adults" min="1" value="1" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="children">Children</label>
+                <input type="number" id="children" min="0" value="0">
+            </div>
+            
+            <div class="form-group">
+                <label for="totalPrice">Total Price</label>
+                <input type="number" id="totalPrice" min="0" step="0.01" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="currency">Currency</label>
+                <select id="currency" required>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="JPY">JPY</option>
+                    <option value="CAD">CAD</option>
+                    <option value="AUD">AUD</option>
+                </select>
+            </div>
+            
+            <div class="form-group full-width">
+                <label for="source">AI Source</label>
+                <select id="source" required>
+                    <option value="vapi_agent">VAPI AI Agent</option>
+                    <option value="retail_agent">Retail AI Agent</option>
+                    <option value="voice_assistant">Voice Assistant</option>
+                </select>
+            </div>
+            
+            <div class="form-group full-width">
+                <button id="createBooking">Create Booking</button>
+            </div>
+        </div>
+        
+        <div id="result" class="result">
+            <h3>Result</h3>
+            <pre id="resultContent"></pre>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default dates
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            document.getElementById('checkInDate').value = formatDate(today);
+            document.getElementById('checkOutDate').value = formatDate(tomorrow);
+            
+            // Create booking
+            document.getElementById('createBooking').addEventListener('click', function() {
+                createBooking();
+            });
+            
+            function formatDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+            
+            async function createBooking() {
+                // Gather form data
+                const bookingData = {
+                    propertyId: document.getElementById('propertyId').value,
+                    roomTypeId: document.getElementById('roomTypeId').value,
+                    guestName: document.getElementById('guestName').value,
+                    guestEmail: document.getElementById('guestEmail').value,
+                    guestPhone: document.getElementById('guestPhone').value,
+                    ratePlanId: document.getElementById('ratePlanId').value,
+                    checkInDate: document.getElementById('checkInDate').value,
+                    checkOutDate: document.getElementById('checkOutDate').value,
+                    adults: parseInt(document.getElementById('adults').value),
+                    children: parseInt(document.getElementById('children').value),
+                    totalPrice: parseFloat(document.getElementById('totalPrice').value),
+                    currency: document.getElementById('currency').value,
+                    source: document.getElementById('source').value
+                };
+                
+                // Validate required fields
+                if (!bookingData.propertyId || !bookingData.roomTypeId || !bookingData.guestName || 
+                    !bookingData.guestEmail || !bookingData.checkInDate || !bookingData.checkOutDate || 
+                    !bookingData.adults || !bookingData.totalPrice || !bookingData.currency) {
+                    showResult('Please fill out all required fields.', false);
+                    return;
+                }
+                
+                try {
+                    // Make API call
+                    const response = await fetch('/api/reservations/ai-agent', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(bookingData)
+                    });
+                    
+                    const responseData = await response.json();
+                    
+                    if (response.ok) {
+                        showResult(JSON.stringify(responseData, null, 2), true);
+                    } else {
+                        showResult(JSON.stringify(responseData, null, 2), false);
+                    }
+                } catch (error) {
+                    showResult(`Error: ${error.message}`, false);
+                }
+            }
+            
+            function showResult(content, success) {
+                const resultElement = document.getElementById('result');
+                const resultContentElement = document.getElementById('resultContent');
+                
+                resultElement.className = success ? 'result success' : 'result error';
+                resultElement.style.display = 'block';
+                resultContentElement.textContent = content;
+            }
+        });
+    </script>
+</body>
+</html> 

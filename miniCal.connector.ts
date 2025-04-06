@@ -311,6 +311,82 @@ export class MiniCalConnector {
   }
 
   /**
+   * Pushes a booking created in MiniCal to YieldPlanet
+   * This is used when bookings are created by AI agents (retail or VAPI)
+   * @param miniCalBooking MiniCal booking
+   * @param propertyId Property ID
+   * @returns Created YieldPlanet reservation
+   */
+  async pushBookingToYieldPlanet(miniCalBooking: MiniCalBooking, propertyId: string): Promise<YieldPlanetReservation> {
+    try {
+      // Log the request
+      const startTime = Date.now();
+      
+      // Get property from database to access mappings
+      const property = await this.propertyRepository.findOneBy({ id: propertyId });
+      
+      if (!property) {
+        throw new Error(`Property with ID ${propertyId} not found`);
+      }
+      
+      // Map MiniCal booking to YieldPlanet reservation
+      const yieldPlanetReservation = this.miniCalMapper.mapBookingToYieldPlanetReservation(
+        miniCalBooking,
+        property.yieldPlanetPropertyId
+      );
+      
+      // Create reservation in YieldPlanet
+      const createdReservation = await this.yieldPlanetService.createReservation(yieldPlanetReservation);
+      
+      // Store the reservation in the database
+      const reservation = new Reservation();
+      reservation.propertyId = propertyId;
+      reservation.roomTypeId = miniCalBooking.roomTypeId;
+      reservation.guestName = miniCalBooking.guestName;
+      reservation.guestEmail = miniCalBooking.guestEmail;
+      reservation.checkInDate = new Date(miniCalBooking.checkInDate);
+      reservation.checkOutDate = new Date(miniCalBooking.checkOutDate);
+      reservation.adults = miniCalBooking.adults;
+      reservation.children = miniCalBooking.children || 0;
+      reservation.totalPrice = miniCalBooking.totalPrice;
+      reservation.currency = miniCalBooking.currency;
+      reservation.status = 'confirmed';
+      reservation.externalReservationId = miniCalBooking.id;
+      reservation.yieldPlanetReservationId = createdReservation.id;
+      reservation.source = 'ai_agent';
+      
+      await this.reservationRepository.save(reservation);
+      
+      // Log the response
+      await this.logRequest(
+        'POST',
+        `/properties/${propertyId}/yieldplanet/reservations`,
+        miniCalBooking,
+        createdReservation,
+        200,
+        Date.now() - startTime,
+        propertyId
+      );
+      
+      return createdReservation;
+    } catch (error: any) {
+      // Log the error
+      await this.logRequest(
+        'POST',
+        `/properties/${propertyId}/yieldplanet/reservations`,
+        miniCalBooking,
+        null,
+        error.response?.status || 500,
+        0,
+        propertyId,
+        error.message
+      );
+      
+      throw error;
+    }
+  }
+
+  /**
    * Logs an API request to the database
    * @param method HTTP method
    * @param endpoint API endpoint

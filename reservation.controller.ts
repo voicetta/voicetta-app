@@ -243,4 +243,91 @@ export class ReservationController {
     const d = new Date(date);
     return d.toISOString().split('T')[0];
   }
+
+  /**
+   * Create a reservation from AI agent and push to YieldPlanet
+   * @param req Express request
+   * @param res Express response
+   */
+  createAIAgentReservation = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const reservationData = req.body;
+      
+      // Validate required fields
+      if (!this.validateReservationData(reservationData)) {
+        res.status(400).json({
+          status: 'error',
+          message: 'Missing required reservation fields',
+          code: 'INVALID_REQUEST'
+        });
+        return;
+      }
+
+      // Check if property exists
+      const property = await this.propertyRepository.findOneBy({ id: reservationData.propertyId });
+      
+      if (!property) {
+        res.status(404).json({
+          status: 'error',
+          message: `Property with ID ${reservationData.propertyId} not found`,
+          code: 'PROPERTY_NOT_FOUND'
+        });
+        return;
+      }
+
+      // Add source information to identify AI agent bookings
+      reservationData.source = reservationData.source || 'ai_agent';
+
+      // Create reservation in database first to track the process
+      const reservation = this.reservationRepository.create({
+        ...reservationData,
+        status: 'pending'
+      });
+      
+      const savedReservation = await this.reservationRepository.save(reservation);
+
+      // Create booking in MiniCal
+      const miniCalBooking = {
+        id: savedReservation.id, // Use our reservation ID as reference
+        roomTypeId: reservationData.roomTypeId,
+        ratePlanId: reservationData.ratePlanId || 'DEFAULT', // Use default rate plan if not specified
+        checkInDate: this.formatDate(reservationData.checkInDate),
+        checkOutDate: this.formatDate(reservationData.checkOutDate),
+        guestName: reservationData.guestName,
+        guestEmail: reservationData.guestEmail,
+        guestPhone: reservationData.guestPhone,
+        adults: reservationData.adults,
+        children: reservationData.children || 0,
+        totalPrice: reservationData.totalPrice,
+        currency: reservationData.currency
+      };
+
+      // Push the booking to YieldPlanet
+      const yieldPlanetReservation = await this.miniCalConnector.pushBookingToYieldPlanet(
+        miniCalBooking, 
+        reservationData.propertyId
+      );
+
+      // Update the reservation with external IDs
+      await this.reservationRepository.update(savedReservation.id, {
+        status: 'confirmed',
+        yieldPlanetReservationId: yieldPlanetReservation.id
+      });
+
+      // Get the updated reservation
+      const updatedReservation = await this.reservationRepository.findOneBy({ id: savedReservation.id });
+
+      res.status(201).json({
+        status: 'success',
+        message: 'Reservation created successfully and pushed to YieldPlanet',
+        data: updatedReservation
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        status: 'error',
+        message: error.message,
+        code: 'INTERNAL_ERROR'
+      });
+    }
+  };
 }

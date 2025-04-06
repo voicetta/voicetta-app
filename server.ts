@@ -31,6 +31,11 @@ app.get('/test-booking-flow', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'test-booking-flow.html'));
 });
 
+// Serve AI agent interface
+app.get('/ai-agent', (req, res) => {
+  res.sendFile(path.join(__dirname, 'ai-agent-interface.html'));
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', environment: config.env });

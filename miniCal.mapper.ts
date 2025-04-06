@@ -54,39 +54,29 @@ export class MiniCalMapper {
 
   /**
    * Maps a MiniCal booking to a YieldPlanet reservation
-   * @param miniCalBooking MiniCal booking
+   * @param booking MiniCal booking
+   * @param yieldPlanetPropertyId YieldPlanet property ID
    * @returns YieldPlanet reservation
    */
-  mapBookingToYieldPlanetReservation(miniCalBooking: MiniCalBooking): YieldPlanetReservation {
+  mapBookingToYieldPlanetReservation(booking: MiniCalBooking, yieldPlanetPropertyId: string): YieldPlanetReservation {
     return {
-      id: miniCalBooking.id,
-      propertyId: miniCalBooking.property_id,
-      roomId: miniCalBooking.room_type_id,
-      ratePlanId: miniCalBooking.rate_plan_id,
-      checkIn: miniCalBooking.check_in_date,
-      checkOut: miniCalBooking.check_out_date,
-      guestName: `${miniCalBooking.guest.first_name} ${miniCalBooking.guest.last_name}`,
-      guestEmail: miniCalBooking.guest.email,
-      adults: miniCalBooking.adults,
-      children: miniCalBooking.children,
-      totalPrice: miniCalBooking.payment.total_amount,
-      currency: miniCalBooking.payment.currency,
-      status: miniCalBooking.status === 'confirmed' ? 'confirmed' : 
-              miniCalBooking.status === 'canceled' ? 'cancelled' : 'pending',
-      specialRequests: miniCalBooking.special_requests,
-      guestDetails: {
-        phone: miniCalBooking.guest.phone,
-        address: miniCalBooking.guest.address,
-        city: miniCalBooking.guest.city,
-        country: miniCalBooking.guest.country,
-        postalCode: miniCalBooking.guest.postal_code
-      },
-      paymentDetails: {
-        method: miniCalBooking.payment.payment_method,
-        cardType: miniCalBooking.payment.card_type,
-        cardNumber: miniCalBooking.payment.card_number,
-        expiryDate: miniCalBooking.payment.expiry_date
-      }
+      id: '', // Will be assigned by YieldPlanet
+      propertyId: yieldPlanetPropertyId,
+      roomId: booking.roomTypeId, // Assuming IDs are mapped correctly
+      ratePlanId: booking.ratePlanId, // Assuming IDs are mapped correctly
+      status: 'new',
+      checkIn: booking.checkInDate,
+      checkOut: booking.checkOutDate,
+      guestName: booking.guestName,
+      guestEmail: booking.guestEmail,
+      guestPhone: booking.guestPhone,
+      adults: booking.adults,
+      children: booking.children || 0,
+      totalPrice: booking.totalPrice,
+      currency: booking.currency,
+      source: 'Voicetta AI Agent',
+      notes: `Booking created by Voicetta AI Agent. Original MiniCal Booking ID: ${booking.id}`,
+      externalId: booking.id
     };
   }
 
@@ -111,7 +101,7 @@ export class MiniCalMapper {
         first_name: firstName,
         last_name: lastName,
         email: yieldPlanetReservation.guestEmail,
-        phone: yieldPlanetReservation.guestDetails?.phone,
+        phone: yieldPlanetReservation.guestPhone,
         address: yieldPlanetReservation.guestDetails?.address,
         city: yieldPlanetReservation.guestDetails?.city,
         country: yieldPlanetReservation.guestDetails?.country,
